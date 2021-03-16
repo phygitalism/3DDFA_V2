@@ -7,6 +7,10 @@ import cv2
 from math import sqrt
 import matplotlib.pyplot as plt
 
+
+from .landmarks_300w import BOTTOM_LEAP, LEFT_EYEBROW, RIGHT_EYEBROW, LEFT_EYE, RIGHT_EYE, NOSE, TOP_MOUTH, \
+    BOTTOM_MOUTH, TOP_LEAP, BOTTOM_LEAP, FACE_BOUND
+
 RED = (0, 0, 255)
 GREEN = (0, 255, 0)
 BLUE = (255, 0, 0)
@@ -155,6 +159,26 @@ def draw_landmarks(img, pts, style='fancy', wfp=None, show_flag=False, **kwargs)
     if show_flag:
         plt.show()
 
+
+def landmarks_to_json(pts, type_name: str) -> dict:
+    new_pts = np.round(pts.T).astype(np.int32)
+
+    if new_pts.shape[1] == 2:
+        points_label = "points_xy"
+    else:
+        points_label = "points_xyz"
+
+    landmarks = {points_label: new_pts.tolist(), "type": type_name}
+    if new_pts.shape[1] == 2:
+        landmarks.update({"origin": "top_left", "x_axis": "left_to_right", "y_axis": "top_to_bottom"})
+
+    for land_pos in (BOTTOM_LEAP, LEFT_EYEBROW, RIGHT_EYEBROW, LEFT_EYE, RIGHT_EYE, NOSE, TOP_MOUTH, \
+                     BOTTOM_MOUTH, TOP_LEAP, BOTTOM_LEAP, FACE_BOUND):
+        landmarks[land_pos["name"]] = {"index_bounds": list(land_pos["index_bounds"])}
+
+    return landmarks
+
+    
 
 def cv_draw_landmark(img_ori, pts, box=None, color=GREEN, size=1):
     img = img_ori.copy()
