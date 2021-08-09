@@ -10,6 +10,7 @@ import yaml
 from os import path
 from collections import deque
 import jsonlines
+import os
 
 from FaceBoxes import FaceBoxes
 from TDDFA import TDDFA
@@ -22,7 +23,6 @@ def main(args):
 
     # Init FaceBoxes and TDDFA, recommend using onnx flag
     if args.onnx:
-        import os
         os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
         os.environ['OMP_NUM_THREADS'] = '4'
         
