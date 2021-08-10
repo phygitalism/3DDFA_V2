@@ -26,7 +26,9 @@ class DetectionInfo:
                  yaw_degree: float,
                  pitch_degree: float,
                  roll_degree: float,
-                 image_width: int, image_height: int):
+                 image_width: int, 
+                 image_height: int,
+                 face_index: int):
         self.source_bbox = np.round(bbox)
         self.source_landmarks = np.round(landmarks[:, :-1])
         self.yaw = yaw_degree
@@ -34,6 +36,7 @@ class DetectionInfo:
         self.roll = roll_degree
         self.image_width = image_width
         self.image_height = image_height
+        self.face_index = face_index
 
         coords = np.array(bbox).reshape(2, 2)
         bottom_left = coords.min(axis=0)
@@ -77,7 +80,8 @@ class DetectionInfo:
         return {"source_bbox": self.source_bbox.astype(np.int32),
                 "source_landmarks": self.source_landmarks.astype(np.int32),
                 "affine_face_to_aligned": self.get_face_alignment_matrix(),
-                "aligned_landmarks": self.aligned_landmarks.astype(np.int32)
+                "aligned_landmarks": self.aligned_landmarks.astype(np.int32),
+                "face_index": self.face_index
                 }
 
 
@@ -104,12 +108,12 @@ def process_image(bgr_image, bbox_model, landmark_model) -> List[DetectionInfo]:
 
     detection_res = []
 
-    for param, bbox, ver in zip(param_lst, roi_box_lst, ver_lst):
+    for face_index, (param, bbox, ver) in enumerate(zip(param_lst, roi_box_lst, ver_lst)):
         # yaw, pitch, roll
         _, pose = calc_pose(param)
         # ver shape is 3 X N
         detection_res.append(DetectionInfo(
-            bbox, ver.T, pose[0], pose[1], pose[2], img_width, img_height))
+            bbox, ver.T, pose[0], pose[1], pose[2], img_width, img_height, face_index))
 
     return detection_res
 
