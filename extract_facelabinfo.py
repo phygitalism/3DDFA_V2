@@ -159,13 +159,14 @@ def main(args):
         face_boxes = FaceBoxes()
 
     out_dir = pathlib.Path(args.out_dir)
+    out_dir.mkdir(exist_ok=True, parents=True)
     debug_dir = out_dir / "debug_aligned"
 
     if args.debug:
         debug_dir.mkdir(exist_ok=True, parents=True)
 
     with os.scandir(args.image_dir) as entry_it:
-        with jsonlines.open("annotation.json", "w", compact=True, dumps=NumpyJsonEncoder().encode) as json_annotation:
+        with jsonlines.open(out_dir / args.filename, "w", compact=True, dumps=NumpyJsonEncoder().encode) as json_annotation:
             for entry in entry_it:
                 if not entry.is_file() or os.path.splitext(entry.name)[1] not in args.image_ext:
                     continue
@@ -178,7 +179,10 @@ def main(args):
                                      str(debug_dir / entry.name))
 
                 for detection in detected_info:
-                    json_annotation.write(detection.to_dict())
+                    info = detection.to_dict()
+                    assert "filename" not in info
+                    info["filename"] = entry.name
+                    json_annotation.write(info)
 
 
 if __name__ == '__main__':
@@ -197,6 +201,8 @@ if __name__ == '__main__':
     parser.add_argument('--onnx', action='store_true', default=False)
     parser.add_argument("--debug", action="store_true",
                         help="Save debug photo")
+    parser.add_argument("--filename", type=str,
+                        default="annotation.json")
 
     args = parser.parse_args()
     main(args)
