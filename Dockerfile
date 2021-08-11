@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /home
 
 RUN apt update && \
-    apt install -y gcc \
+    apt install -y gcc g++ \
     wget && \
     apt autoremove -y && \
     apt clean -y
@@ -35,7 +35,22 @@ RUN conda env update -n base --file ./environment.yml && conda clean -ya &&  rm 
 
 WORKDIR /home/app
 
-COPY ./ ./3DDFA_V2
+COPY ./bfm ./3DDFA_V2/bfm
+
+COPY ./configs ./3DDFA_V2/configs
+
+COPY ./FaceBoxes ./3DDFA_V2/FaceBoxes
+
+COPY ./models ./3DDFA_V2/models
+
+COPY ./Sim3DR ./3DDFA_V2/Sim3DR
+
+COPY ./utils ./3DDFA_V2/utils
+
+COPY ./weights ./3DDFA_V2/weights
+
+COPY ./demo_video_smooth.py ./demo_video.py ./demo_webcam_smooth.py ./demo.py ./extract_facelabinfo.py \
+    ./latency.py ./speed_cpu.py ./TDDFA_ONNX.py ./TDDFA.py ./build.sh ./3DDFA_V2/
 
 RUN cd ./3DDFA_V2 && \
     sh ./build.sh
