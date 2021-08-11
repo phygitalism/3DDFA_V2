@@ -35,7 +35,7 @@ RUN conda env update -n base --file ./environment.yml && conda clean -ya &&  rm 
 
 WORKDIR /home/app
 
-COPY ./ ./
+COPY ./ ./3DDFA_V2
 
 RUN cd ./3DDFA_V2 && \
     sh ./build.sh
