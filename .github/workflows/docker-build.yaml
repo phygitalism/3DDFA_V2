@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-docker-image-and-publish:
+  docker-build-publish:
     runs-on: ubuntu-20.04
 
     steps:

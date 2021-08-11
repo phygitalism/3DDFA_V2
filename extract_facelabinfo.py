@@ -52,7 +52,7 @@ class DetectionInfo:
         self.aligned_landmarks = cv2.transform(
             self.source_landmarks[None, ...], self.get_face_alignment_matrix())[0]
 
-    def get_rotated_bbox(self):
+    def get_rotated_bbox(self) -> RotatingRectangle:
         bbox = self.get_aabb()
         xy = bbox.get_xy()
         width = bbox.get_width()
@@ -60,13 +60,13 @@ class DetectionInfo:
         return RotatingRectangle(xy, width, height, rel_point_of_rot=tuple(self._center_of_rotation),
                                  angle=-self.roll, fill=None, edgecolor="red")
 
-    def get_aabb(self):
+    def get_aabb(self) -> RotatingRectangle:
         return self._patch_bbox
 
-    def get_face_alignment_matrix(self):
+    def get_face_alignment_matrix(self) -> np.ndarray:
         return self._aligned_matrix_face
 
-    def _align_face_transform(self):
+    def _align_face_transform(self) -> None:
         aabb = self.get_aabb()
         width = aabb.get_width()
         height = aabb.get_height()
@@ -85,7 +85,7 @@ class DetectionInfo:
                 }
 
 
-def process_image(bgr_image, bbox_model, landmark_model) -> List[DetectionInfo]:
+def process_image(bgr_image: np.ndarray, bbox_model, landmark_model) -> List[DetectionInfo]:
     # Detect faces, get 3DMM params and roi boxes
     boxes = bbox_model(bgr_image)
 
@@ -118,7 +118,7 @@ def process_image(bgr_image, bbox_model, landmark_model) -> List[DetectionInfo]:
     return detection_res
 
 
-def save_debug_image(bgr_image, detection_res: List[DetectionInfo], debug_path: str) -> None:
+def save_debug_image(bgr_image: np.ndarray, detection_res: List[DetectionInfo], debug_path: str) -> None:
     fig = plt.figure(figsize=(10, 10))
     axes = fig.subplots(1, len(detection_res) + 1)
     ax = axes[0]
