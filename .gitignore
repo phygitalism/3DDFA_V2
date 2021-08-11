@@ -29,4 +29,5 @@ how_to_make_video_demos.txt
 
 .vscode/
 input/
+output/
 *.jpg
