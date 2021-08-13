@@ -36,7 +36,7 @@ jobs:
 
       - name: Image name
         id: get_image_name
-        run: echo "::set-output name=image_name::${CI_HEAD_REF_SLUG}"
+        run: echo "::set-output name=image_name::${CI_REF_NAME_SLUG}"
 
       - name: Build and push image
         id: docker_build
