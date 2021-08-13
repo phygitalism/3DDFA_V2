@@ -26,3 +26,8 @@ render_3dface.ipynb
 test_onnx.py
 benchmark.py
 how_to_make_video_demos.txt
+
+.vscode/
+input/
+output/
+*.jpg

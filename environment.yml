@@ -1,0 +1,23 @@
+channels:
+  - defaults
+  - conda-forge
+  - pytorch
+dependencies:
+  - python=3.8
+  - pip
+  - pytorch=1.7
+  - torchvision
+  - cudatoolkit=10.2
+  - matplotlib=3
+  - numpy=1.20
+  - imageio=2.9
+  - imageio-ffmpeg
+  - pyyaml # yaml
+  - tqdm
+  - cython=0.29
+  - scikit-image=0.18
+  - scipy=1.6
+  - jsonlines=2.0
+  - pip:
+    - opencv-python-headless~=4.5
+    - onnxruntime~=1.6
