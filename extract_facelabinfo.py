@@ -3,11 +3,12 @@ import argparse
 from typing import List
 import yaml
 import pathlib
+import itertools
+
 import jsonlines
-
 import cv2
-
 import numpy as np
+
 from FaceBoxes import FaceBoxes
 from TDDFA import TDDFA
 from utils.pose import calc_pose
@@ -26,7 +27,7 @@ class DetectionInfo:
                  yaw_degree: float,
                  pitch_degree: float,
                  roll_degree: float,
-                 image_width: int, 
+                 image_width: int,
                  image_height: int,
                  face_index: int):
         self.source_bbox = np.round(bbox)
@@ -81,7 +82,10 @@ class DetectionInfo:
                 "source_landmarks": self.source_landmarks.astype(np.int32),
                 "affine_face_to_aligned": self.get_face_alignment_matrix(),
                 "aligned_landmarks": self.aligned_landmarks.astype(np.int32),
-                "face_index": self.face_index
+                "face_index": self.face_index,
+                "raw_degree": self.yaw,
+                "pitch_degree": self.pitch,
+                "roll_degree": self.roll
                 }
 
 
@@ -116,6 +120,19 @@ def process_image(bgr_image: np.ndarray, bbox_model, landmark_model) -> List[Det
             bbox, ver.T, pose[0], pose[1], pose[2], img_width, img_height, face_index))
 
     return detection_res
+
+
+def scan_dir(path_to_dir: str, recursive: bool = False):
+    is_first_level = True
+
+    for root_dir, dirs, files in os.walk(path_to_dir):
+        for file in itertools.chain(dirs, files):
+            yield os.path.join(root_dir, file)
+
+        if is_first_level and not recursive:
+            break
+        else:
+            is_first_level = False
 
 
 def save_debug_image(bgr_image: np.ndarray, detection_res: List[DetectionInfo], debug_path: str) -> None:
@@ -169,24 +186,25 @@ def main(args):
     if args.debug:
         debug_dir.mkdir(exist_ok=True, parents=True)
 
-    with os.scandir(args.image_dir) as entry_it:
-        with jsonlines.open(out_dir / args.filename, "w", compact=True, dumps=NumpyJsonEncoder().encode) as json_annotation:
-            for entry in entry_it:
-                if not entry.is_file() or os.path.splitext(entry.name)[1] not in args.image_ext:
-                    continue
+    with jsonlines.open(out_dir / args.filename, "w", compact=True, dumps=NumpyJsonEncoder().encode) as json_annotation:
+        for path_to_entry in scan_dir(args.image_dir, args.recursive):
+            filename = os.path.basename(path_to_entry)
 
-                bgr_image = cv2.imread(entry.path)
-                detected_info = process_image(bgr_image, face_boxes, tddfa)
+            if not os.path.isfile(path_to_entry) or os.path.splitext(filename)[1] not in args.image_ext:
+                continue
 
-                if args.debug:
-                    save_debug_image(bgr_image, detected_info,
-                                     str(debug_dir / entry.name))
+            bgr_image = cv2.imread(path_to_entry)
+            detected_info = process_image(bgr_image, face_boxes, tddfa)
 
-                for detection in detected_info:
-                    info = detection.to_dict()
-                    assert "filename" not in info
-                    info["filename"] = entry.name
-                    json_annotation.write(info)
+            if args.debug:
+                save_debug_image(bgr_image, detected_info,
+                                 str(debug_dir / filename))
+
+            for detection in detected_info:
+                info = detection.to_dict()
+                assert "filename" not in info
+                info["filename"] = filename
+                json_annotation.write(info)
 
 
 if __name__ == '__main__':
@@ -196,6 +214,8 @@ if __name__ == '__main__':
                         default='configs/mb1_120x120.yml')
     parser.add_argument("--image_dir", type=str, required=True,
                         help="A path to directory with images")
+    parser.add_argument("-r", "--recursive", action="store_true",
+                        help="Scan directory recursively")
     parser.add_argument("--image_ext", nargs="+",
                         default=[".jpg"], help="A image extension to process")
     parser.add_argument("--out_dir", type=str, required=True,

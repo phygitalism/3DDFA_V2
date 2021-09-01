@@ -29,7 +29,7 @@ ENV PATH=$CONDA_DIR/bin:$PATH
 
 WORKDIR /home/app
 
-COPY ./environment.yml ./environment.yml
+COPY ./environment.yml ./
 
 RUN conda env update -n base --file ./environment.yml && conda clean -ya &&  rm ./environment.yml
 
