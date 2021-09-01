@@ -38,6 +38,14 @@ jobs:
         id: get_image_name
         run: echo "::set-output name=image_name::${CI_REF_NAME_SLUG}"
 
+      - name: Run test inference on single image
+        env:
+          COMPOSE_DOCKER_CLI_BUILD: 1
+        run: docker-compose up --build
+
+      - name: Check file
+        run: if ! [ -f ./output/annotation.json ]; then exit 1; fi
+
       - name: Build and push image
         id: docker_build
         uses: docker/build-push-action@v2

@@ -28,6 +28,6 @@ benchmark.py
 how_to_make_video_demos.txt
 
 .vscode/
-input/
 output/
 *.jpg
+!input/test.jpg

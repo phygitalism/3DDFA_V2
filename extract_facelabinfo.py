@@ -203,7 +203,11 @@ def main(args):
             for detection in detected_info:
                 info = detection.to_dict()
                 assert "filename" not in info
+                assert "relative_path" not in info
                 info["filename"] = filename
+                info["relative_path"] = pathlib.Path(
+                    path_to_entry).relative_to(args.image_dir).as_posix()
+
                 json_annotation.write(info)
 
 
