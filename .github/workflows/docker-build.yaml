@@ -43,16 +43,26 @@ jobs:
         id: get_image_name
         run: echo "::set-output name=image_name::${CI_REF_NAME_SLUG}"
 
+      - name: Build image
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: false
+          builder: ${{ steps.buildx.outputs.name }}
+          context: .
+          load: true
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+          tags: ${{ secrets.DOCKERHUB_ORG }}/3dfav2:${{ steps.get_image_name.outputs.image_name }}
+
       - name: Run test inference on single image
-        env:
-          COMPOSE_DOCKER_CLI_BUILD: 1
-        run: docker-compose up --build
+        run: docker run --rm -v $(pwd)/input:/home/input -v $(pwd)/output:/home/output ${{ secrets.DOCKERHUB_ORG }}/3dfav2:${{ steps.get_image_name.outputs.image_name }} python ./extract_facelabinfo.py --onnx --image_dir /home/input --out_dir /home/output
 
       - name: Check file
         run: if ! [ -f ./output/annotation.json ]; then exit 1; fi
 
-      - name: Build and push image
-        id: docker_build
+      - name: Push image
+        id: docker_push
         uses: docker/build-push-action@v2
         with:
           push: ${{ github.event_name == 'push' || github.event.inputs.forceImagePush == 'true' }}
@@ -63,4 +73,4 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_ORG }}/3dfav2:${{ steps.get_image_name.outputs.image_name }}
 
       - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+        run: echo ${{ steps.docker_push.outputs.digest }}
