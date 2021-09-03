@@ -30,4 +30,5 @@ how_to_make_video_demos.txt
 .vscode/
 output/
 *.jpg
+input/
 !input/test.jpg
