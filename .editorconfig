@@ -1,0 +1,5 @@
+root = true
+
+[{Dockerfile,docker-compose.yaml}]
+insert_final_newline = true
+charset = utf-8

@@ -2,7 +2,7 @@ ARG CUDA_VERSION=10.2
 # See possible types: https://hub.docker.com/r/nvidia/cuda/tags?page=1&ordering=last_updated
 ARG IMAGE_TYPE=runtime
 
-FROM nvidia/cudagl:${CUDA_VERSION}-${IMAGE_TYPE}-ubuntu18.04
+FROM nvidia/cudagl:${CUDA_VERSION}-${IMAGE_TYPE}-ubuntu18.04 as builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -29,7 +29,7 @@ ENV PATH=$CONDA_DIR/bin:$PATH
 
 WORKDIR /home/app
 
-COPY ./environment.yml ./environment.yml
+COPY ./environment.yml ./
 
 RUN conda env update -n base --file ./environment.yml && conda clean -ya &&  rm ./environment.yml
 
@@ -56,3 +56,19 @@ RUN cd ./3DDFA_V2 && \
     sh ./build.sh
 
 WORKDIR /home/app/3DDFA_V2
+
+FROM nvidia/cudagl:${CUDA_VERSION}-runtime-ubuntu18.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+ARG CONDA_DIR=/opt/conda
+
+COPY --from=builder /opt/conda /opt/conda
+
+ENV PATH=$CONDA_DIR/bin:$PATH
+
+ARG PROJECT_DIR=/home/app/3DDFA_V2
+
+COPY --from=builder ${PROJECT_DIR} ${PROJECT_DIR}
+
+WORKDIR ${PROJECT_DIR}
