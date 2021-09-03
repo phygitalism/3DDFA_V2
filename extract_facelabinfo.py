@@ -83,7 +83,7 @@ class DetectionInfo:
                 "affine_face_to_aligned": self.get_face_alignment_matrix(),
                 "aligned_landmarks": self.aligned_landmarks.astype(np.int32),
                 "face_index": self.face_index,
-                "raw_degree": self.yaw,
+                "yaw_degree": self.yaw,
                 "pitch_degree": self.pitch,
                 "roll_degree": self.roll
                 }
