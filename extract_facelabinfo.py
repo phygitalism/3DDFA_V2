@@ -3,7 +3,6 @@ import argparse
 from typing import List, Iterable
 import yaml
 import pathlib
-import itertools
 
 import jsonlines
 import cv2
@@ -119,7 +118,7 @@ class DetectionInfo:
             if key not in self.KEYS_TO_EXPORT:
                 raise ValueError("Found unexpected key to export")
 
-            keys[key] = self.__getattribute__(key)
+            info[key] = self.__getattribute__(key)
 
         return info
 
@@ -206,17 +205,11 @@ def check_args(args):
 
 
 def main(args):
-    if not args.save_info:
-        args.save_info = DetectionInfo.KEYS_TO_EXPORT
-
     with open(args.config) as config_file:
         cfg = yaml.load(config_file, Loader=yaml.SafeLoader)
 
     # Init FaceBoxes and TDDFA, recommend using onnx flag
     if args.onnx:
-        # os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-        # os.environ['OMP_NUM_THREADS'] = '4'
-
         face_boxes = FaceBoxes_ONNX()
         tddfa = TDDFA_ONNX(**cfg)
     else:
@@ -232,13 +225,13 @@ def main(args):
         debug_dir.mkdir(exist_ok=True, parents=True)
 
     with jsonlines.open(out_dir / args.filename, "w", compact=True, dumps=NumpyJsonEncoder().encode) as json_annotation:
-        for path_to_entry in scan_dir(args.image_dir, args.recursive):
-            filename = path_to_entry.name
+        for entry in scan_dir(args.image_dir, args.recursive):
+            filename = entry.name
 
-            if not path_to_entry.is_file() or os.path.splitext(filename)[1] not in args.image_ext:
+            if not entry.is_file() or os.path.splitext(filename)[1] not in args.image_ext:
                 continue
 
-            bgr_image = cv2.imread(path_to_entry)
+            bgr_image = cv2.imread(entry.path)
             detected_info = process_image(bgr_image, face_boxes, tddfa)
 
             if args.debug:
@@ -248,7 +241,7 @@ def main(args):
             info = dict()
             info["filename"] = filename
             info["relative_path"] = pathlib.Path(
-                path_to_entry).relative_to(args.image_dir).as_posix()
+                entry.path).relative_to(args.image_dir).as_posix()
             info["faces"] = []
 
             for detection in detected_info:
@@ -259,8 +252,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='The demo of still image of 3DDFA_V2',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        description='The demo of still image of 3DDFA_V2')
     parser.add_argument('-c', '--config', type=str,
                         default='configs/mb1_120x120.yml')
     parser.add_argument("--image_dir", type=str, required=True,
@@ -273,12 +265,12 @@ if __name__ == '__main__':
                         help="A path to output directory")
     parser.add_argument('-m', '--mode', choices=["cpu", "gpu"],
                         default='cpu', help='gpu or cpu mode')
-    parser.add_argument('--onnx', action='store_true', default=False)
+    parser.add_argument('--onnx', action='store_true')
     parser.add_argument("--debug", action="store_true",
                         help="Save debug photo")
     parser.add_argument("--filename", type=str,
                         default="annotation.json")
-    parser.add_argument("--save_info", nargs="*",
+    parser.add_argument("--save_info", nargs="*", default=DetectionInfo.KEYS_TO_EXPORT,
                         help=f"Information to save: {' '.join(DetectionInfo.KEYS_TO_EXPORT)}")
 
     args = parser.parse_args()
