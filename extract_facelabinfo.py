@@ -3,6 +3,7 @@ import argparse
 from typing import List, Iterable
 import yaml
 import pathlib
+import traceback
 
 import jsonlines
 import cv2
@@ -231,23 +232,26 @@ def main(args):
             if not entry.is_file() or os.path.splitext(filename)[1] not in args.image_ext:
                 continue
 
-            bgr_image = cv2.imread(entry.path)
-            detected_info = process_image(bgr_image, face_boxes, tddfa)
+            try:
+                bgr_image = cv2.imread(entry.path)
+                detected_info = process_image(bgr_image, face_boxes, tddfa)
 
-            if args.debug:
-                save_debug_image(bgr_image, detected_info,
-                                 str(debug_dir / filename))
+                if args.debug:
+                    save_debug_image(bgr_image, detected_info,
+                                     str(debug_dir / filename))
 
-            info = dict()
-            info["filename"] = filename
-            info["relative_path"] = pathlib.Path(
-                entry.path).relative_to(args.image_dir).as_posix()
-            info["faces"] = []
+                info = dict()
+                info["filename"] = filename
+                info["relative_path"] = pathlib.Path(
+                    entry.path).relative_to(args.image_dir).as_posix()
+                info["faces"] = []
 
-            for detection in detected_info:
-                info["faces"].append(detection.to_dict(args.save_info))
+                for detection in detected_info:
+                    info["faces"].append(detection.to_dict(args.save_info))
 
-            json_annotation.write(info)
+                json_annotation.write(info)
+            except Exception:
+                traceback.print_exc()
 
 
 if __name__ == '__main__':
