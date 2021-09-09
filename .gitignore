@@ -32,3 +32,4 @@ output/
 *.jpg
 input/
 !input/test.jpg
+!input/image2/test.jpg
