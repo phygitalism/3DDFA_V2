@@ -31,7 +31,7 @@ WORKDIR /home/app
 
 COPY ./environment.yml ./
 
-RUN conda env update -n base --file ./environment.yml && conda clean -ya &&  rm ./environment.yml
+RUN conda env update -n base --file ./environment.yml && conda clean -yfa &&  rm ./environment.yml
 
 WORKDIR /home/app
 
@@ -72,3 +72,5 @@ ARG PROJECT_DIR=/home/app/3DDFA_V2
 COPY --from=builder ${PROJECT_DIR} ${PROJECT_DIR}
 
 WORKDIR ${PROJECT_DIR}
+
+CMD python ./extract_facelabinfo.py
