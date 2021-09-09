@@ -3,7 +3,7 @@ version: "3.7"
 services:
   3dfav2:
     build: .
-    command: python ./extract_facelabinfo.py --onnx --image_dir /home/input --out_dir /home/output
+    command: python ./extract_facelabinfo.py --onnx -r --image_dir /home/input --out_dir /home/output
     volumes:
       - ./input:/home/input:ro
       - ./output:/home/output
